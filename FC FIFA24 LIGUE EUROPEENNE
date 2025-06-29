@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<title>Chatbot Prédiction FIFA Ligue Européenne</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; max-width: 600px; }
+  label, select, button { display: block; margin: 10px 0; }
+  #result { margin-top: 20px; white-space: pre-line; }
+</style>
+</head>
+<body>
+
+<h2>Prédiction Match FIFA Ligue Européenne</h2>
+
+<label for="teamA">Équipe A :</label>
+<select id="teamA"></select>
+
+<label for="teamB">Équipe B :</label>
+<select id="teamB"></select>
+
+<button onclick="predictMatch()">Prédire le résultat</button>
+
+<div id="result"></div>
+
+<script>
+// Données statistiques simplifiées
+const teams = [
+  {name: "Liverpool", MJ:14, V:10, N:2, P:2, DB:38-14, Pts:32, goalsFor:38, goalsAgainst:14},
+  {name: "Milan", MJ:14, V:9, N:4, P:1, DB:37-14, Pts:31, goalsFor:37, goalsAgainst:14},
+  {name: "Sporting Clube de Portugal", MJ:14, V:9, N:1, P:4, DB:28-19, Pts:28, goalsFor:28, goalsAgainst:19},
+  {name: "Villarreal", MJ:13, V:8, N:3, P:2, DB:31-17, Pts:27, goalsFor:31, goalsAgainst:17},
+  {name: "Galatasaray", MJ:13, V:8, N:2, P:3, DB:35-19, Pts:26, goalsFor:35, goalsAgainst:19},
+  {name: "Olympique de Marseille", MJ:13, V:8, N:2, P:3, DB:38-20, Pts:26, goalsFor:38, goalsAgainst:20},
+  {name: "Benfica", MJ:13, V:6, N:4, P:3, DB:26-20, Pts:22, goalsFor:26, goalsAgainst:20},
+  {name: "Real Betis", MJ:14, V:6, N:4, P:4, DB:24-17, Pts:22, goalsFor:24, goalsAgainst:17},
+  {name: "Bayer 04", MJ:13, V:7, N:1, P:5, DB:28-22, Pts:22, goalsFor:28, goalsAgainst:22},
+  {name: "Freiburg", MJ:14, V:6, N:3, P:5, DB:23-19, Pts:21, goalsFor:23, goalsAgainst:19},
+  {name: "Toulouse", MJ:13, V:6, N:0, P:7, DB:20-28, Pts:18, goalsFor:20, goalsAgainst:28},
+  {name: "Feyenoord", MJ:13, V:5, N:1, P:7, DB:19-21, Pts:16, goalsFor:19, goalsAgainst:21},
+  {name: "Roma", MJ:14, V:4, N:3, P:7, DB:22-34, Pts:15, goalsFor:22, goalsAgainst:34},
+  {name: "AEK Athens", MJ:13, V:4, N:2, P:7, DB:20-32, Pts:14, goalsFor:20, goalsAgainst:32},
+  {name: "Brighton et Hove Albion", MJ:13, V:4, N:2, P:7, DB:20-26, Pts:14, goalsFor:20, goalsAgainst:26},
+  {name: "West Ham United", MJ:13, V:3, N:4, P:6, DB:18-23, Pts:13, goalsFor:18, goalsAgainst:23},
+  {name: "Bergamo Calcio", MJ:14, V:4, N:0, P:10, DB:20-34, Pts:12, goalsFor:20, goalsAgainst:34},
+  {name: "LASK", MJ:13, V:2, N:2, P:9, DB:10-29, Pts:8, goalsFor:10, goalsAgainst:29},
+  {name: "Rangers", MJ:13, V:2, N:1, P:10, DB:21-32, Pts:7, goalsFor:21, goalsAgainst:32},
+  {name: "Sparta Praha", MJ:14, V:1, N:3, P:10, DB:22-60, Pts:6, goalsFor:22, goalsAgainst:60}
+];
+
+// Remplir les listes déroulantes
+const selectA = document.getElementById('teamA');
+const selectB = document.getElementById('teamB');
+teams.forEach(team => {
+  let optionA = document.createElement('option');
+  optionA.value = team.name;
+  optionA.textContent = team.name;
+  selectA.appendChild(optionA);
+
+  let optionB = document.createElement('option');
+  optionB.value = team.name;
+  optionB.textContent = team.name;
+  selectB.appendChild(optionB);
+});
+
+function predictMatch() {
+  const teamAName = selectA.value;
+  const teamBName = selectB.value;
+  if (teamAName === teamBName) {
+    alert("Veuillez choisir deux équipes différentes.");
+    return;
+  }
+
+  const teamA = teams.find(t => t.name === teamAName);
+  const teamB = teams.find(t => t.name === teamBName);
+
+  // Analyse simple basée sur points et attaque/défense
+  const attackA = teamA.goalsFor / teamA.MJ;
+  const defenseA = teamA.goalsAgainst / teamA.MJ;
+  const attackB = teamB.goalsFor / teamB.MJ;
+  const defenseB = teamB.goalsAgainst / teamB.MJ;
+
+  // Estimation buts mi-temps (simplifiée)
+  const htGoalsA = Math.round((attackA + (1 - defenseB)) / 2);
+  const htGoalsB = Math.round((attackB + (1 - defenseA)) / 2);
+
+  // Générer 3 scores mi-temps proches
+  const htScores = [
+    `${htGoalsA}-${htGoalsB}`,
+    `${Math.max(0, htGoalsA - 1)}-${htGoalsB}`,
+    `${htGoalsA}-${Math.max(0, htGoalsB - 1)}`
+  ];
+
+  // Estimation buts finaux (simplifiée)
+  const ftGoalsA = Math.round(attackA * 1.8 - defenseB * 0.8);
+  const ftGoalsB = Math.round(attackB * 1.8 - defenseA * 0.8);
+
+  // Générer 3 scores finaux proches
+  const ftScores = [
+    `${ftGoalsA}-${ftGoalsB}`,
+    `${Math.max(0, ftGoalsA - 1)}-${ftGoalsB}`,
+    `${ftGoalsA}-${Math.max(0, ftGoalsB - 1)}`
+  ];
+
+  // Déterminer vainqueur ou nul
+  let winner = "Nul";
+  let resultCode = "X";
+  if (ftGoalsA > ftGoalsB) {
+    winner = teamA.name;
+    resultCode = "X1";
+  } else if (ftGoalsB > ftGoalsA) {
+    winner = teamB.name;
+    resultCode = "X2";
+  }
+
+  // Total buts
+  const totalGoals = ftGoalsA + ftGoalsB;
+  const overUnder = totalGoals > 2.5 ? "+2.5" : "-2.5";
+
+  // Les deux équipes marquent ?
+  const bothScore = (ftGoalsA > 0 && ftGoalsB > 0) ? "Oui" : "Non";
+
+  // Affichage résultat
+  const resultText = 
+    `Scores mi-temps : ${htScores.join(", ")}\n` +
+    `Scores finaux : ${ftScores.join(", ")}\n` +
+    `Résumé : ${winner}, ${resultCode}, ${overUnder}, ${bothScore}\n\n` +
+    `FC 24. Ligue européenne\nTableau du tournoi`;
+
+  document.getElementById('result').textContent = resultText;
+}
+</script>
+
+</body>
+</html>
